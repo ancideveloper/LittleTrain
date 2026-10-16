@@ -4,7 +4,7 @@ A calm, endless 3D train journey for children aged 0-2, built on the [LittleJS](
 
 Tap, click or press any key: the train starts. More taps or holding make it go faster; letting go lets it settle back to a gentle speed. There is no score, menu or text.
 
-**Play online:** https://littletrain.jo3.org/
+**Play online:** https://ancideveloper.github.io/LittleTrain/
 
 ## Run
 
