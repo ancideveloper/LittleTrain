@@ -198,12 +198,10 @@ function trainUpdate(dt)
         idleTime = 0;
         train.boost = Math.min(BOOST_MAX, train.boost + BOOST_PER_PRESS * pressed);
         input.presses = 0;
-        train.steamBoost = Math.min(1.6, train.steamBoost + 0.8 * pressed);   // fuller steam on every press
         sparkBurst(Math.min(24, 8 * pressed));
     }
     if (input.held && train.running) { idleTime = 0; train.boost = Math.min(BOOST_MAX, train.boost + BOOST_HOLD_RATE * dt); }
     else idleTime += dt;
-    train.steamBoost = Math.max(0, train.steamBoost - dt * 1.4);
 
     if (train.running)
     {
@@ -234,7 +232,7 @@ function trainUpdate(dt)
     trainLayout();
     sparksUpdate(dt);
 }
-train.steamBoost = 0; train.moving = false;
+train.moving = false;
 
 // ---------- sparks at the wheels: more taps, more sparks ----------
 const SPARK_MAX = 80;
@@ -289,7 +287,7 @@ function sparksUpdate(dt)
 }
 
 // ---------- steam: a fixed pool of soft spheres, recycled oldest-first ----------
-const STEAM_MAX = 64;
+const STEAM_MAX = 40;
 const steam = {objs: [], vel: [], age: new Float32Array(STEAM_MAX), life: new Float32Array(STEAM_MAX),
     r0: new Float32Array(STEAM_MAX), alive: new Uint8Array(STEAM_MAX), next: 0, timer: 0.4, count: 0};
 
@@ -304,25 +302,28 @@ function steamInit()
     sparksInit();
 }
 
-function steamEmit(speedT, big)
+function steamEmit(speedT)
 {
     const i = steam.next; steam.next = (i + 1) % STEAM_MAX;
-    const f = 1 + train.steamBoost * 0.7;
     steam.objs[i].pos3D.set(train.chimney.x, train.chimney.y, train.chimney.z);
-    steam.vel[i].set(train.heading.x * train.v * 0.3, (2.2 + speedT * 2.4) * (0.9 + 0.3 * train.steamBoost), train.heading.z * train.v * 0.3);
+    steam.vel[i].set(train.heading.x * train.v * 0.3, 2.2 + speedT * 2, train.heading.z * train.v * 0.3);
     steam.age[i] = 0;
-    steam.life[i] = 2.2 + speedT * 0.8 + Math.random() * 0.3;
-    steam.r0[i] = (big ? 0.9 : 0.6 + speedT * 0.9) * f;
+    steam.life[i] = 2.2 + speedT * 0.6 + Math.random() * 0.3;
+    steam.r0[i] = 0.6 + speedT * 0.7;
     steam.alive[i] = 1;
 }
 
 function steamUpdate(dt)
 {
     const speedT = train.v / V_MAX;
-    // standing still: small occasional puffs; more speed and every tap: more frequent, fuller puffs
-    const interval = train.moving ? mix(1.0, 0.1, Math.pow(speedT, 0.8)) / (1 + train.steamBoost * 1.2) : 2.6;
-    steam.timer -= dt;
-    if (steam.timer <= 0) { steamEmit(speedT, !train.moving); steam.timer += interval; if (steam.timer < 0) steam.timer = interval; }
+    // no steam while the train stands still; low speed: small occasional puffs, high speed: frequent fuller puffs
+    if (train.moving)
+    {
+        const interval = mix(1.0, 0.12, Math.pow(speedT, 0.8));
+        steam.timer -= dt;
+        if (steam.timer <= 0) { steamEmit(speedT); steam.timer += interval; if (steam.timer < 0) steam.timer = interval; }
+    }
+    else steam.timer = 0.3;   // the first puff comes soon after the train sets off
     const dragH = Math.exp(-dt * 1.1), dragV = Math.exp(-dt * 0.45);
     let n = 0;
     for (let i = 0; i < STEAM_MAX; ++i)
@@ -335,7 +336,7 @@ function steamUpdate(dt)
         const v = steam.vel[i];
         o.pos3D.x += v.x * dt; o.pos3D.y += v.y * dt; o.pos3D.z += v.z * dt;
         v.x *= dragH; v.z *= dragH; v.y *= dragV;
-        const r = (steam.r0[i] + k * (1.6 + speedT * 3)) * 2;
+        const r = (steam.r0[i] + k * (1.6 + speedT * 2.2)) * 2;
         o.scale3D.set(r, r, r);
         o.color.a = (0.62 + 0.2 * speedT) * Math.pow(1 - k, 1.3) * Math.min(1, k * 8);
         ++n;
