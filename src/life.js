@@ -55,7 +55,7 @@ function buildWaterside()
     lakes.forEach((L, li) =>
     {
         const lakeSeed = li * 100;
-        for (let i = 0; i < 220; ++i)   // reeds fringe the whole shore, in clumps
+        for (let i = 0; i < 220; i += 2)   // reeds fringe the shore in sparse clumps
         {
             const clump = Math.floor(i / 5), ang = rnd(lakeSeed + clump) * TAU + (rnd(lakeSeed + i * 3) - 0.5) * 0.12;
             shorePoint(L, ang, sp);

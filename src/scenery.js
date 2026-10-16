@@ -159,6 +159,8 @@ function treeMeshes()
     return {round, pine};
 }
 
+const treeSpots = [];   // x, z pairs of every tree, so the snowman can stand clear of them
+
 function buildTreesAndFlowers()
 {
     const meshes = treeMeshes();
@@ -184,6 +186,7 @@ function buildTreesAndFlowers()
             sc.set(size, size * (0.9 + hash1(ss) * 0.3), size);
             rot.set(0, hash1(ss * 4.4) * TAU, 0);
             const pos = vec3(_p.x, y - 0.3, _p.z);
+            treeSpots.push(_p.x, _p.z);
             if (sn > 0.5 && np < maxN) pines.setTransformAt(np++, pos, rot, sc);
             else if (nr < maxN)
             {
@@ -350,14 +353,22 @@ class Snowman extends EngineObject3D
 
 function buildSnowmen()
 {
-    for (const [s, lat, sc] of [[912, 13, 1.3], [926, 22, 0.9]])
-    {
-        insidePoint(s, lat, _p);
-        const sm = new Snowman(vec3(_p.x, groundY(_p.x, _p.z) - 0.2, _p.z), sc);
-        trackPos(s, _q);
-        sm.rotation3D.y = Math.atan2(_q.tz, _q.tx) + PI / 2;   // look toward the track (and the camera)
-        animals.push(sm);
-    }
+    // one small snowman beside the rails, on the spot with the most room around it (no tree, no other scenery nearby)
+    let best = null;
+    for (let s = 892; s <= 940; s += 2)
+        for (let lat = 13; lat <= 21; lat += 2)
+        {
+            insidePoint(s, lat, _p);
+            let d = 1e9;
+            for (let i = 0; i < treeSpots.length; i += 2) d = Math.min(d, Math.hypot(_p.x - treeSpots[i], _p.z - treeSpots[i + 1]));
+            const score = Math.min(d, 14) - Math.abs(s - 915) * 0.02;
+            if (!best || score > best.score) best = {s, lat, score, x: _p.x, z: _p.z};
+        }
+    const sm = new Snowman(vec3(best.x, groundY(best.x, best.z) - 0.1, best.z), 0.65);
+    trackPos(best.s, _q);
+    sm.rotation3D.y = Math.atan2(_q.tz, _q.tx) + PI / 2;   // look toward the track (and the camera)
+    animals.push(sm);
+    return best;
 }
 
 // ---------- clouds and snowfall ----------
