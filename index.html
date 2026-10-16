@@ -10,9 +10,17 @@
   html, body { margin: 0; height: 100%; overflow: hidden; background: #8fd3ff; overscroll-behavior: none;
     touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
   canvas { touch-action: none; }
+  #start { position: fixed; left: 0; right: 0; bottom: 9vh; text-align: center; pointer-events: none; z-index: 5;
+    font: 700 clamp(22px, 4.2vw, 44px)/1.2 "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif; color: #fff;
+    text-shadow: 0 2px 0 rgba(43,58,85,.55), 0 0 18px rgba(43,58,85,.45); transition: opacity .6s; animation: bob 1.8s ease-in-out infinite; }
+  #start small { display: block; margin-top: .3em; font-size: .6em; font-weight: 600; opacity: .95; }
+  body.started #start { opacity: 0; animation: none; }
+  @keyframes bob { 50% { transform: translateY(-8px); } }
+  @media (prefers-reduced-motion: reduce) { #start { animation: none; } }
 </style>
 </head>
 <body>
+<div id="start" role="status">Tap or press any key to start!<small>Keep tapping or holding to go faster</small></div>
 <noscript>LittleTrain needs JavaScript to run.</noscript>
 <script src="vendor/littlejs.min.js"></script>
 <script src="src/route.js"></script>

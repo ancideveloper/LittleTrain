@@ -10,6 +10,7 @@ function inputPress()
 {
     ++input.presses;
     input.everUsed = true;
+    document.body.classList.add('started');   // fades out the start message
     audioUnlock();
 }
 
