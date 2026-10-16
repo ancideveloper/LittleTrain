@@ -86,6 +86,7 @@ function playChuff(speedT)
 function audioUpdate(dt, running, speedT, wheelRevsPerSec)
 {
     audioClock += dt;
+    if (!running) whistleTimer = -1;   // the next whistle comes shortly after the train sets off again
     if (!running || !audioReady()) return;
     if (whistleTimer < 0) whistleTimer = audioClock + WHISTLE_FIRST_DELAY;
     if (audioClock >= whistleTimer && playWhistle())

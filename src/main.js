@@ -36,7 +36,7 @@ function skyUpdate(force)
 // ---------- camera: sits outside the loop, always far enough back to frame the whole train ----------
 function cameraFit()
 {
-    const aspect = mainCanvasSize.x / Math.max(1, mainCanvasSize.y);
+    const aspect = clamp(mainCanvasSize.x / Math.max(1, mainCanvasSize.y), 0.25, 4);   // never degenerate while the window is being resized
     const camera = render3D.camera;
     camera.fov = aspect < 1 ? 0.95 : 0.72;
     const halfH = Math.tan(camera.fov / 2), halfW = halfH * aspect;
@@ -51,7 +51,9 @@ function cameraUpdate(dt, snap)
     const k = snap ? 1 : 1 - Math.exp(-dt * 3);
     rig.dir.x += (train.heading.x - rig.dir.x) * k; rig.dir.z += (train.heading.z - rig.dir.z) * k;
     const l = Math.hypot(rig.dir.x, rig.dir.z) || 1; rig.dir.x /= l; rig.dir.z /= l;
-    rig.dist += (cameraFit() - rig.dist) * (snap ? 1 : 1 - Math.exp(-dt * 4));    // zoom changes are always smooth
+    const fit = cameraFit();
+    if (!Number.isFinite(rig.dist)) rig.dist = fit;
+    rig.dist += (fit - rig.dist) * (snap ? 1 : 1 - Math.exp(-dt * 4));    // zoom changes are always smooth
     const t = rig.target;
     t.set(train.mid.x, train.mid.y + 2.8, train.mid.z);
     const rx = -rig.dir.z, rz = rig.dir.x, c = Math.cos(rig.pitch) * rig.dist, s = Math.sin(rig.pitch) * rig.dist;
@@ -94,7 +96,7 @@ function gameUpdate()
     const dt = timeDelta;
     trainUpdate(dt);
     steamUpdate(dt);
-    audioUpdate(dt, train.running, train.v / V_MAX, train.v / (TAU * 0.9));
+    audioUpdate(dt, train.moving, train.v / V_MAX, train.v / (TAU * 0.9));
 }
 
 function gameUpdatePost()
@@ -107,7 +109,7 @@ function gameUpdatePost()
 }
 
 // Read-only diagnostics for developers (nothing is shown to players)
-window.littleTrain = {train, steam, input, cameraRig, TERRAIN, get frames() { return framesSeen; }, get scene() { return sceneInfo; },
+window.littleTrain = {train, steam, sparks, input, cameraRig, TERRAIN, get frames() { return framesSeen; }, get scene() { return sceneInfo; },
     ROUTE_LENGTH, ROUTE_ORIGINAL_LENGTH, routeArcLength, trackY, trackPos, sunsetAt, snowAt, playWhistle, audioReady: () => audioReady(),
     TRAIN_LENGTH, TRAIN_HEIGHT, TRAIN_WIDTH, cameraFit, cameraUpdate, trainLayout, skyUpdate};
 
