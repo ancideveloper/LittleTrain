@@ -21,7 +21,8 @@ Any static file server works; `tools/serve.js` just disables caching while devel
 | `index.html` | page and script order |
 | `src/route.js` | closed railway loop, height profile, zones (day, sunset, snow) |
 | `src/terrain.js` | height-map terrain carved around the track, lakes, mountain, vertex colours |
-| `src/scenery.js` | rails, bridge, open tunnel, trees, flowers, lakes, animals, snowman, clouds, snowfall |
+| `src/scenery.js` | rails, bridge, open tunnel, trees, flowers, lakes, snowman, clouds, snowfall |
+| `src/life.js` | lakeside details, ducks/swans/frogs/rabbits/deer, sheep flock, two bird flocks |
 | `src/train.js` | speed model, 3D train, bounded steam pool, tap hint |
 | `src/audio.js` | synthesized whistle and soft chuffs (starts only after a user gesture) |
 | `src/input.js` | keyboard / mouse / touch input, scroll and gesture blocking |

@@ -178,7 +178,8 @@ function buildTreesAndFlowers()
             let bad = false;
             for (const L of lakes) if (Math.hypot(_p.x - L.x, _p.z - L.z) < L.r + 5) bad = true;
             const sn = snowAt(ss);
-            if (bad || y < trackY(ss) - 9 || Math.hypot(_p.x - TERRAIN.mountain.x, _p.z - TERRAIN.mountain.z) < 25) continue;
+            const pasture = (ss > 1334 || ss < 22) && -lat < 70;   // keep the sheep meadow open
+            if (bad || pasture || y < trackY(ss) - 9 || Math.hypot(_p.x - TERRAIN.mountain.x, _p.z - TERRAIN.mountain.z) < 25) continue;
             const size = 0.8 + hash1(ss * 9.1 + t) * 0.7;
             sc.set(size, size * (0.9 + hash1(ss) * 0.3), size);
             rot.set(0, hash1(ss * 4.4) * TAU, 0);
@@ -282,22 +283,6 @@ function deerHead()
 }
 
 const animals = [];
-class Duck extends EngineObject3D
-{
-    constructor(lake, radius, phase, speed)
-    {
-        super(vec3(), duckMesh());
-        this.lake = lake; this.radius = radius; this.phase = phase; this.speed = speed;
-    }
-    update()
-    {
-        const a = this.phase + time * this.speed, L = this.lake;
-        const x = L.x + Math.cos(a) * this.radius, z = L.z + Math.sin(a) * this.radius;
-        this.pos3D.set(x, L.level + 0.15 + Math.sin(time * 2 + this.phase) * 0.06, z);
-        this.rotation3D.y = Math.atan2(Math.sin(a) * this.speed * Math.sign(this.speed), -Math.cos(a) * Math.sign(this.speed)) + (this.speed < 0 ? 0 : 0);
-        this.rotation3D.z = Math.sin(time * 2 + this.phase) * 0.05;
-    }
-}
 class Rabbit extends EngineObject3D
 {
     constructor(x, z, phase)
@@ -329,32 +314,6 @@ class Deer extends EngineObject3D
         this.pos3D.set(this.home.x, groundY(this.home.x, this.home.z), this.home.z);
         this.head.rotation3D.x = 0.55 * Math.max(0, Math.sin(time * 0.5 + this.phase));   // grazing, head bowing slowly
     }
-}
-
-function buildAnimals()
-{
-    const [lakeA, lakeB] = TERRAIN.lakes;
-    for (let i = 0; i < 3; ++i) animals.push(new Duck(lakeA, lakeA.r * (0.25 + i * 0.22), i * 2.1, 0.07 * (i % 2 ? -1 : 1) / (0.6 + i * 0.2) * 8 / lakeA.r * 3));
-    for (let i = 0; i < 2; ++i) animals.push(new Duck(lakeB, lakeB.r * (0.3 + i * 0.3), i * 3, 0.1 * (i ? -1 : 1) * 12 / lakeB.r * 3));
-    // rabbits and deer on the bank between the lake and the track, in view of the camera
-    const bank = (L, sTrack, ang, d, out) =>
-    {
-        trackPos(sTrack, _p);
-        const rx = -_p.tz, rz = _p.tx;   // right (toward the track from the lake)
-        const c = Math.cos(ang), s = Math.sin(ang);
-        const dx = rx * c - rz * s, dz = rx * s + rz * c;
-        out.x = L.x + dx * (L.r + d); out.z = L.z + dz * (L.r + d);
-        return out;
-    };
-    const spots = [[0, 550, -0.5, 7, 'r'], [0, 550, 0.1, 9, 'd'], [0, 550, 0.55, 8, 'r'], [0, 550, -0.2, 14, 'd'],
-        [1, 1285, -0.3, 7, 'r'], [1, 1285, 0.4, 8, 'd'], [1, 1285, 0.05, 11, 'r']];
-    spots.forEach(([li, st, ang, d, kind], i) =>
-    {
-        const L = TERRAIN.lakes[li], pos = bank(L, st, ang, d, {});
-        const y = groundY(pos.x, pos.z);
-        if (y < L.level + 0.5) return;
-        animals.push(kind === 'r' ? new Rabbit(pos.x, pos.z, i * 1.7) : new Deer(pos.x, pos.z, i * 1.3 + 2));
-    });
 }
 
 // ---------- snowman ----------
@@ -391,7 +350,7 @@ class Snowman extends EngineObject3D
 
 function buildSnowmen()
 {
-    for (const [s, lat, sc] of [[912, 24, 1.5], [926, 30, 0.9]])
+    for (const [s, lat, sc] of [[912, 13, 1.3], [926, 22, 0.9]])
     {
         insidePoint(s, lat, _p);
         const sm = new Snowman(vec3(_p.x, groundY(_p.x, _p.z) - 0.2, _p.z), sc);
@@ -461,10 +420,9 @@ function buildScenery()
     buildTunnel();
     buildWater();
     const counts = buildTreesAndFlowers();
-    buildAnimals();
     buildSnowmen();
     buildSky3D();
-    return counts;
+    return {...counts, life: buildLife()};
 }
 
 function waterUpdate(skyColor)
