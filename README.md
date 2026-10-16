@@ -4,6 +4,8 @@ A calm, endless 3D train journey for children aged 0-2, built on the [LittleJS](
 
 Tap, click or press any key: the train starts. More taps or holding make it go faster; letting go lets it settle back to a gentle speed. There is no score, menu or text.
 
+**Play online:** https://ancideveloper.github.io/LittleTrain/
+
 ## Run
 
 ```
@@ -30,3 +32,7 @@ Any static file server works; `tools/serve.js` just disables caching while devel
 ## Route
 
 The loop is 1400 units long (about 2.5x the 554-unit stadium loop of the original LittleJS site demo) and passes through: countryside with a bridge, an open tunnel, a sunset valley with a lake and animals, a snowy mountain with a snowman, and back through lakeside countryside to the start.
+
+## Credits
+
+Built with [LittleJS](https://github.com/KilledByAPixel/LittleJS) by Frank Force (MIT License).
